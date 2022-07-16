@@ -3,6 +3,7 @@ package org.acme.examssb.models;
 import lombok.Data;
 
 import javax.persistence.*;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class ExamTry {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
-    private List<Answer> questionAnswers;
+    @Valid
+    private List<Answer> answers;
 
 }

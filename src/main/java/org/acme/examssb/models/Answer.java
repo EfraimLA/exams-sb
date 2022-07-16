@@ -1,5 +1,6 @@
 package org.acme.examssb.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
@@ -16,6 +17,10 @@ public class Answer {
 
     @OneToOne
     private Question question;
+
+    @JsonProperty("question_id")
+    @Transient
+    private Long questionId;
 
     @NotNull
     @Range(min = 0, max = 3) // Between 4 answers | Zero index
