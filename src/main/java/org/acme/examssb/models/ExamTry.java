@@ -6,6 +6,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+@Table(name = "exam_tries")
 @Entity
 @Data
 public class ExamTry {
