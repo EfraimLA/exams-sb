@@ -4,6 +4,7 @@ import org.acme.examssb.models.Student;
 import org.acme.examssb.repositories.IStudentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,8 +56,14 @@ public class StudentController {
     }
 
     @DeleteMapping("/{id}")
-    void deleteStudent(@PathVariable("id") Long id) {
-        repository.deleteById(id);
+    ResponseEntity<?> deleteStudent(@PathVariable("id") Long id) {
+        try {
+            repository.deleteById(id);
+
+            return ResponseEntity.ok().build();
+        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }

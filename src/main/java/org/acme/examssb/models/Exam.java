@@ -3,7 +3,9 @@ package org.acme.examssb.models;
 import lombok.Data;
 
 import javax.persistence.*;
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
@@ -25,7 +27,9 @@ public class Exam {
 
     private Date deadline;
 
+    @NotNull(message = "Questions are required")
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Valid
     private List<Question> questions;
 
 }

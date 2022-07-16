@@ -1,5 +1,6 @@
 package org.acme.examssb.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
@@ -18,13 +19,15 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @NotBlank(message = "Question description is required")
     private String question;
 
-    @NotNull
+    @NotNull(message = "Value is required")
     @Min(1)
     private Integer value;
 
+    @NotNull(message = "Correct answer is required")
+    @JsonProperty("correct_answer")
     @Range(min = 0, max = 3) // Between 4 answers | Zero index
     private Integer correctAnswer;
 
