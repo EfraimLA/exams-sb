@@ -2,6 +2,7 @@ package org.acme.examssb.controllers;
 
 import org.acme.examssb.models.Exam;
 import org.acme.examssb.models.ExamTry;
+import org.acme.examssb.models.Question;
 import org.acme.examssb.models.Score;
 import org.acme.examssb.repositories.IExamRepository;
 import org.acme.examssb.repositories.IExamTryRepository;
@@ -62,11 +63,22 @@ public class ExamController {
         // Validate question's total value equal to 100
         var sum = exam.getQuestions()
                 .stream()
-                .map(question -> question.getValue())
+                .map(Question::getValue)
                 .reduce(0, Integer::sum)
                 .compareTo(100);
 
         if (sum != 0) return ResponseEntity.badRequest().build();
+
+        exam.setQuestions(
+                exam.getQuestions()
+                        .stream()
+                        .map(question -> {
+                            question.setExam(exam);
+
+                            return question;
+                        })
+                        .collect(Collectors.toList())
+        );
 
         return ResponseEntity.ok(repository.save(exam));
     }
@@ -84,29 +96,47 @@ public class ExamController {
         examTry.setStudent(student);
 
         try {
-            examTry.getAnswers()
-                    .stream()
-                    .map(answer -> {
-                        var question = questionRepository.findById(answer.getQuestionId())
-                                .orElseThrow(() -> new ValidationException("Question not found"));
+            examTry.setAnswers(
+                    examTry.getAnswers()
+                            .stream()
+                            .map(answer -> {
+                                var question = questionRepository.findById(answer.getQuestionId())
+                                        .orElseThrow(() -> new ValidationException("Question not found"));
 
-                        var qExam = question.getExam();
+                                var qExam = question.getExam();
 
-                        if (qExam == null) throw new ValidationException("Exam not found");
-                        else if (!qExam.getId().equals(id))
-                            throw new ValidationException("Question's exam does not match");
+                                if (qExam == null) throw new ValidationException("Exam not found");
+                                else if (!qExam.getId().equals(id))
+                                    throw new ValidationException("Question's exam does not match");
 
-                        answer.setQuestion(question);
+                                answer.setQuestion(question);
 
-                        return answer;
-                    });
+                                return answer;
+                            }).collect(Collectors.toList())
+            );
         } catch (ValidationException e) {
+            LOGGER.info("Validation exception: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
 
         examTryRepository.save(examTry);
 
         var score = new Score();
+        score.setStudent(student);
+        score.setAnswers(examTry.getAnswers());
+
+        score.setScore(
+                examTry.getAnswers()
+                        .stream()
+                        .map(answer -> {
+                            var question = answer.getQuestion();
+
+                            if (question.getCorrectAnswer().equals(answer.getAnswer()))
+                                return question.getValue();
+
+                            return 0;
+                        }).mapToInt(Integer::intValue).sum()
+        );
 
         return ResponseEntity.ok(score);
     }

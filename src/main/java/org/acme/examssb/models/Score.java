@@ -2,18 +2,15 @@ package org.acme.examssb.models;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class Score {
 
-    private Integer score;
+    private Integer score = 0;
 
     private Student student;
 
-    private Exam exam;
+    private List<Answer> answers;
 
-    public void setExam(Exam exam) {
-        exam.setQuestions(null);
-
-        this.exam = exam;
-    }
 }

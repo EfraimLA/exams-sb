@@ -15,7 +15,8 @@ public class Answer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(optional = false,
+            cascade = {CascadeType.DETACH, CascadeType.REFRESH})
     private Question question;
 
     @JsonProperty("question_id")

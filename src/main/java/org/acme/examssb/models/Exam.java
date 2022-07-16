@@ -1,5 +1,6 @@
 package org.acme.examssb.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -23,12 +24,13 @@ public class Exam {
     @NotBlank
     private String instructions;
 
+    @JsonProperty("available_at")
     private Date availableAt;
 
     private Date deadline;
 
     @NotNull(message = "Questions are required")
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "exam")
     @Valid
     private List<Question> questions;
 

@@ -16,10 +16,12 @@ public class ExamTry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(optional = false)
+    @OneToOne(optional = false,
+            cascade = {CascadeType.DETACH, CascadeType.REFRESH})
     private Student student;
 
-    @OneToOne(optional = false)
+    @OneToOne(optional = false,
+            cascade = {CascadeType.DETACH, CascadeType.REFRESH})
     private Exam exam;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
