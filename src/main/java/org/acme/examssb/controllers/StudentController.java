@@ -2,8 +2,6 @@ package org.acme.examssb.controllers;
 
 import org.acme.examssb.models.Student;
 import org.acme.examssb.repositories.IStudentRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +14,6 @@ import java.util.TimeZone;
 @RestController
 @RequestMapping("/students")
 public class StudentController {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(StudentController.class);
 
     private final IStudentRepository repository;
 

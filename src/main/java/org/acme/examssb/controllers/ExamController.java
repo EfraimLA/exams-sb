@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
-import javax.websocket.server.PathParam;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -63,6 +62,8 @@ public class ExamController {
     @PostMapping
     ResponseEntity<?> createExam(@RequestBody @Valid Exam exam) {
 
+        // Exam Creation Timestamp Are UTC
+
         if (exam.getAvailableAt() != null &&
                 exam.getAvailableAt().isBefore(Instant.now())) {
             return ResponseEntity.badRequest().body("Exam cannot be available in the past");
@@ -71,6 +72,11 @@ public class ExamController {
         if (exam.getDeadline() != null &&
                 exam.getDeadline().isBefore(Instant.now())) {
             return ResponseEntity.badRequest().body("Exam cannot be closed in the past");
+        }
+
+        if (exam.getAvailableAt() != null && exam.getDeadline() != null &&
+                exam.getAvailableAt().isAfter(exam.getDeadline())) {
+            return ResponseEntity.badRequest().body("Exam cannot be available after it is closed");
         }
 
         // Validate question's total value equal to 100
@@ -85,11 +91,7 @@ public class ExamController {
         exam.setQuestions(
                 exam.getQuestions()
                         .stream()
-                        .map(question -> {
-                            question.setExam(exam);
-
-                            return question;
-                        })
+                        .peek(question -> question.setExam(exam))
                         .collect(Collectors.toList())
         );
 
@@ -125,7 +127,8 @@ public class ExamController {
             examTry.setAnswers(
                     examTry.getAnswers()
                             .stream()
-                            .map(answer -> {
+                            .peek(answer -> {
+
                                 var question = questionRepository.findById(answer.getQuestionId())
                                         .orElseThrow(() -> new ValidationException("Question not found"));
 
@@ -137,7 +140,6 @@ public class ExamController {
 
                                 answer.setQuestion(question);
 
-                                return answer;
                             }).collect(Collectors.toList())
             );
         } catch (ValidationException e) {
@@ -173,7 +175,7 @@ public class ExamController {
     }
 
     @DeleteMapping("/{id}")
-    void deleteExam(@PathParam("id") final Long id) {
+    void deleteExam(@PathVariable("id") final Long id) {
         repository.deleteById(id);
     }
 
