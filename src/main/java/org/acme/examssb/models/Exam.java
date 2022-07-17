@@ -7,7 +7,7 @@ import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -25,9 +25,9 @@ public class Exam {
     private String instructions;
 
     @JsonProperty("available_at")
-    private Date availableAt;
+    private Instant availableAt;
 
-    private Date deadline;
+    private Instant deadline;
 
     @NotNull(message = "Questions are required")
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "exam")

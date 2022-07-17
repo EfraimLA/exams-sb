@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.ValidationException;
 import javax.websocket.server.PathParam;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,7 +61,17 @@ public class ExamController {
     }
 
     @PostMapping
-    ResponseEntity<Exam> createExam(@RequestBody @Valid Exam exam) {
+    ResponseEntity<?> createExam(@RequestBody @Valid Exam exam) {
+
+        if (exam.getAvailableAt() != null &&
+                exam.getAvailableAt().isBefore(Instant.now())) {
+            return ResponseEntity.badRequest().body("Exam cannot be available in the past");
+        }
+
+        if (exam.getDeadline() != null &&
+                exam.getDeadline().isBefore(Instant.now())) {
+            return ResponseEntity.badRequest().body("Exam cannot be closed in the past");
+        }
 
         // Validate question's total value equal to 100
         var sum = exam.getQuestions()
@@ -91,6 +104,19 @@ public class ExamController {
         var student = studentRepository.findById(studentId).orElse(null);
 
         if (exam == null | student == null) return ResponseEntity.notFound().build();
+
+        var studentTimezone = ZoneId.of(student.getTimezone());
+        var studentTime = ZonedDateTime.now(studentTimezone);
+
+        if (exam.getAvailableAt() != null &&
+                exam.getAvailableAt().atZone(studentTimezone).isAfter(studentTime)) {
+            return ResponseEntity.badRequest().body("Exam is not available yet");
+        }
+
+        if (exam.getDeadline() != null &&
+                exam.getDeadline().atZone(studentTimezone).isBefore(studentTime)) {
+            return ResponseEntity.badRequest().body("Exam is closed");
+        }
 
         examTry.setExam(exam);
         examTry.setStudent(student);

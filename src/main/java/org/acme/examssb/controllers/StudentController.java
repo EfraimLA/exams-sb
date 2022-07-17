@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 
 @RestController
 @RequestMapping("/students")
@@ -37,8 +39,14 @@ public class StudentController {
     }
 
     @PostMapping
-    Student createStudent(@RequestBody @Valid Student student) {
-        return repository.save(student);
+    ResponseEntity<?> createStudent(@RequestBody @Valid Student student) {
+        var timezone = student.getTimezone();
+
+        if (timezone != null && !Arrays.asList(TimeZone.getAvailableIDs()).contains(timezone)) {
+            return ResponseEntity.badRequest().body("Invalid timezone: " + timezone);
+        }
+
+        return ResponseEntity.ok(repository.save(student));
     }
 
     @PutMapping("/{id}")

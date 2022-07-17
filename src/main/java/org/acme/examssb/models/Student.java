@@ -26,6 +26,6 @@ public class Student {
     @NotBlank(message = "City is required")
     private String city;
 
-    private String timezone;
+    private String timezone = "UTC";
 
 }
