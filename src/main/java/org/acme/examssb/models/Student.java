@@ -26,6 +26,7 @@ public class Student {
     @NotBlank(message = "City is required")
     private String city;
 
+    // Default timezone is UTC
     private String timezone = "UTC";
 
 }

@@ -22,4 +22,5 @@ public class ExamsSbApplication {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         LOGGER.info("Using timezone: {}", TimeZone.getDefault());
     }
+
 }

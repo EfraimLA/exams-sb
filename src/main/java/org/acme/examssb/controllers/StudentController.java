@@ -31,13 +31,15 @@ public class StudentController {
         var student = repository.findById(id).orElse(null);
 
         if (student == null) return ResponseEntity.notFound().build();
-        else return ResponseEntity.ok(student);
+
+        return ResponseEntity.ok(student);
     }
 
     @PostMapping
     ResponseEntity<?> createStudent(@RequestBody @Valid Student student) {
         var timezone = student.getTimezone();
 
+        // Validates timezone id is valid or default to UTC
         if (timezone != null && !Arrays.asList(TimeZone.getAvailableIDs()).contains(timezone)) {
             return ResponseEntity.badRequest().body("Invalid timezone: " + timezone);
         }
@@ -46,17 +48,17 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
-    Student updateStudent(@PathVariable("id") Long id, @RequestBody @Valid Student student) {
+    ResponseEntity<Student> updateStudent(@PathVariable("id") Long id, @RequestBody @Valid Student student) {
         var st = repository.findById(id).orElse(null);
 
-        assert st != null;
+        if (st == null) return ResponseEntity.notFound().build();
 
         st.setName(student.getName());
         st.setAge(student.getAge());
         st.setCity(student.getCity());
         st.setTimezone(student.getTimezone());
 
-        return st;
+        return ResponseEntity.ok(st);
     }
 
     @DeleteMapping("/{id}")

@@ -8,8 +8,7 @@ import org.acme.examssb.repositories.IExamRepository;
 import org.acme.examssb.repositories.IExamTryRepository;
 import org.acme.examssb.repositories.IQuestionRepository;
 import org.acme.examssb.repositories.IStudentRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +23,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/exams")
 public class ExamController {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExamController.class);
 
     private final IExamRepository repository;
 
@@ -102,11 +99,14 @@ public class ExamController {
     ResponseEntity<?> examTry(@PathVariable("id") Long id,
                               @RequestParam("student") Long studentId,
                               @RequestBody @Valid ExamTry examTry) {
+
+        // Gets exam and student by specified ids
         var exam = repository.findById(id).orElse(null);
         var student = studentRepository.findById(studentId).orElse(null);
 
         if (exam == null | student == null) return ResponseEntity.notFound().build();
 
+        // Validates exam is open
         var studentTimezone = ZoneId.of(student.getTimezone());
         var studentTime = ZonedDateTime.now(studentTimezone);
 
@@ -134,6 +134,7 @@ public class ExamController {
 
                                 var qExam = question.getExam();
 
+                                // Verifies questions are from the same exam
                                 if (qExam == null) throw new ValidationException("Exam not found");
                                 else if (!qExam.getId().equals(id))
                                     throw new ValidationException("Question's exam does not match");
@@ -143,7 +144,6 @@ public class ExamController {
                             }).collect(Collectors.toList())
             );
         } catch (ValidationException e) {
-            LOGGER.info("Validation exception: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
 
@@ -159,6 +159,7 @@ public class ExamController {
                         .map(answer -> {
                             var question = answer.getQuestion();
 
+                            // Verifies answer is correct (by index)
                             if (question.getCorrectAnswer().equals(answer.getAnswer()))
                                 return question.getValue();
 
@@ -169,14 +170,15 @@ public class ExamController {
         return ResponseEntity.ok(score);
     }
 
-    @PutMapping
-    Exam updateExam(@RequestBody @Valid Exam exam) {
-        return repository.save(exam);
-    }
-
     @DeleteMapping("/{id}")
-    void deleteExam(@PathVariable("id") final Long id) {
-        repository.deleteById(id);
+    ResponseEntity<?> deleteExam(@PathVariable("id") Long id) {
+        try {
+            repository.deleteById(id);
+
+            return ResponseEntity.ok().build();
+        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }

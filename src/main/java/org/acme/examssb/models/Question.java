@@ -37,7 +37,7 @@ public class Question {
     @Size(min = 4, max = 4, message = "Must be 4 answers") // Must be 4 answers
     private List<String> answers;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.REFRESH})
     @JsonIgnore
     private Exam exam;
 
