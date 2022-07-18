@@ -14,7 +14,7 @@ The possible route paths are the following
 
 `/exams/try/{examId}?student={studentID}` for make a test or exam
 
-The full documentation and request testing are in this Postman Collection
+The full documentation and request testing are in this [Postman Collection](https://documenter.getpostman.com/view/20357074/UzQxM4Ef)
 
 
 
