@@ -16,9 +16,11 @@ import javax.validation.Valid;
 import javax.validation.ValidationException;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.acme.examssb.utils.Utils.formatDateTime;
 
 @RestController
 @RequestMapping("/exams")
@@ -58,16 +60,15 @@ public class ExamController {
 
     @PostMapping
     ResponseEntity<?> createExam(@RequestBody @Valid Exam exam) {
-
-        // Exam Creation Timestamp Are UTC
+        var now = Instant.now();
 
         if (exam.getAvailableAt() != null &&
-                exam.getAvailableAt().isBefore(Instant.now())) {
+                exam.getAvailableAt().isBefore(now)) {
             return ResponseEntity.badRequest().body("Exam cannot be available in the past");
         }
 
         if (exam.getDeadline() != null &&
-                exam.getDeadline().isBefore(Instant.now())) {
+                exam.getDeadline().isBefore(now)) {
             return ResponseEntity.badRequest().body("Exam cannot be closed in the past");
         }
 
@@ -107,17 +108,26 @@ public class ExamController {
         if (exam == null | student == null) return ResponseEntity.notFound().build();
 
         // Validates exam is open
-        var studentTimezone = ZoneId.of(student.getTimezone());
-        var studentTime = ZonedDateTime.now(studentTimezone);
+        var now = Instant.now();
 
         if (exam.getAvailableAt() != null &&
-                exam.getAvailableAt().atZone(studentTimezone).isAfter(studentTime)) {
-            return ResponseEntity.badRequest().body("Exam is not available yet");
+                exam.getAvailableAt().isAfter(now)) {
+            var studentTimezone = ZoneId.of(student.getTimezone());
+            var map = new HashMap<String, Object>();
+
+            map.put("message", "Exam is not available yet, it will be available at " + formatDateTime(exam.getAvailableAt().atZone(studentTimezone)));
+
+            return ResponseEntity.badRequest().body(map);
         }
 
         if (exam.getDeadline() != null &&
-                exam.getDeadline().atZone(studentTimezone).isBefore(studentTime)) {
-            return ResponseEntity.badRequest().body("Exam is closed");
+                exam.getDeadline().isBefore(now)) {
+            var studentTimezone = ZoneId.of(student.getTimezone());
+            var map = new HashMap<String, Object>();
+
+            map.put("message", "Exam was closed at " + formatDateTime(exam.getDeadline().atZone(studentTimezone)));
+
+            return ResponseEntity.badRequest().body(map);
         }
 
         examTry.setExam(exam);
