@@ -7,9 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Arrays;
 import java.util.List;
-import java.util.TimeZone;
+
+import static org.acme.examssb.utils.Utils.isValidTimezone;
 
 @RestController
 @RequestMapping("/students")
@@ -40,7 +40,7 @@ public class StudentController {
         var timezone = student.getTimezone();
 
         // Validates timezone id is valid or default to UTC
-        if (timezone != null && !Arrays.asList(TimeZone.getAvailableIDs()).contains(timezone)) {
+        if (!isValidTimezone(timezone)) {
             return ResponseEntity.badRequest().body("Invalid timezone: " + timezone);
         }
 
